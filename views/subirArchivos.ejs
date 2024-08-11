@@ -1,0 +1,17 @@
+<%- include('template/cabecera', {tituloweb: 'Inicio EJS'}); %>
+
+<body>
+    <h1>Subir un archivo</h1>
+    
+    <form action="/upload" method="post" enctype="multipart/form-data">
+      <input type="file" name="file">
+      <button type="submit">Subir</button>
+    </form>
+  
+    <h1>Archivos subidos</h1>
+    <a href="/files">Ver archivos subidos</a>
+    <p>
+    <a href="/">volver a la pagina principal</a>
+  </body>
+
+<%- include('template/footer'); %>

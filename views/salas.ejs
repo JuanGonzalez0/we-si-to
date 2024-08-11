@@ -1,0 +1,51 @@
+<%- include('template/cabecera', {tituloweb: 'Inicio EJS'}); %>
+
+<body>
+    <h1>Chat con Salas</h1>
+
+    <div>
+        <label for="rooms">Selecciona una sala:</label>
+        <select id="rooms">
+            <option value="deportes">Deportes</option>
+            <option value="juegos">Juegos</option>
+            <option value="cocina">Cocina</option>
+        </select>
+        <button id="join">Unirse</button>
+    </div>
+
+    <div id="chat" style="display:none;">
+        <h2>Chat</h2>
+        <div id="messages"></div>
+        <input id="messageInput" type="text" placeholder="Escribe un mensaje">
+        <button id="sendMessage">Enviar</button>
+    </div>
+
+    <script src="/socket.io/socket.io.js"></script>
+    <script>
+        const socket = io('/salas');
+
+        let currentRoom = '';
+
+        document.getElementById('join').onclick = () => {
+            const room = document.getElementById('rooms').value;
+            currentRoom = room;
+            socket.emit('joinRoom', room);
+            document.getElementById('chat').style.display = 'block';
+        };
+
+        document.getElementById('sendMessage').onclick = () => {
+            const message = document.getElementById('messageInput').value;
+            socket.emit('chat message', { room: currentRoom, msg: message });
+            document.getElementById('messageInput').value = '';
+        };
+
+        socket.on('chat message', (msg) => {
+            const messagesDiv = document.getElementById('messages');
+            const messageElement = document.createElement('div');
+            messageElement.textContent = msg;
+            messagesDiv.appendChild(messageElement);
+        });
+    </script>
+</body>
+
+<%- include('template/footer'); %>
