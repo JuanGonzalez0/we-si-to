@@ -20,10 +20,19 @@ app.get("/", (req, res) => {
     res.render("index");
 });
 
+let usuariosConectados = {};
+
 io.on('connection', (socket) => {
-    console.log('usuario conectado');
+  
+  console.log('usuario conectado', socket.id);
+  usuariosConectados[socket.id] = {id: socket.id, username: `User${socket.id.slice(0, 4)}`};
+  io.emit('updateUserCount', Object.keys(usuariosConectados).length);
     socket.on('disconnect', () =>{
-        console.log('usuario deconectado')
+        console.log('usuario deconectado', socket.id);
+        delete usuariosConectados[socket.id];
+
+        // Enviar la lista actualizada de usuarios conectados a todos los clientes
+        io.emit('updateUserCount', Object.keys(usuariosConectados).length);
     });
     socket.on('chat message', (msg) => {
       io.emit('chat message', msg);
