@@ -113,6 +113,12 @@ app.get("/subirArchivos", (req, res) => {
     });
 });
 
+//JUEGOS
+
+app.get("/juegos", (req, res) => {
+  res.render("juegos");
+});
+
 server.listen(3000, () => {
   console.log('listening on *:3000');
 });
