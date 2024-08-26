@@ -8,11 +8,12 @@ const path = require('path');
 const ejs = require('ejs');
 const multer = require('multer');
 const fs = require('fs');
+const { v4: uuidv4 } = require('uuid');
 
 app.set("view engine", "ejs");
 app.set("views", __dirname + "/views");
 
-
+app.use(express.static('public'));
 
 //GENERAL
 
@@ -43,40 +44,61 @@ io.on('connection', (socket) => {
 });
 
 //SALAS
+
 app.get("/salas", (req, res) => {
-    res.render("salas");
+  res.render("salas");
 });
-const salasIo = io.of('/salas'); // Espacio de nombres para las salas
 
-salasIo.on('connection', (socket) => {
-    console.log('usuario conectado a una sala');
 
-    // Unirse a una sala específica
-    socket.on('joinRoom', (room) => {
-        // Abandonar cualquier sala anterior
-        const previousRooms = Array.from(socket.rooms);
-        previousRooms.forEach(previousRoom => {
-            if (previousRoom !== socket.id) {
-                socket.leave(previousRoom);
-                console.log(`Usuario salió de la sala: ${previousRoom}`);
-            }
-        });
+const salas = {};
 
-        // Unirse a la nueva sala
-        socket.join(room);
-        console.log(`Usuario unido a la sala: ${room}`);
-    });
+io.on('connection', (socket) => {
+  console.log('usuario conectado', socket.id);
 
-    // Enviar mensaje a una sala específica
-    socket.on('chat message', (data) => {
-        const { room, msg } = data;
-        salasIo.to(room).emit('chat message', msg); // Envía el mensaje solo a la sala específica
-    });
+  socket.on('createRoom', (roomName, callback) => {
+      const roomId = uuidv4();
+      salas[roomId] = { name: roomName, users: [] };
+      callback(roomId);
+      io.emit('updateRoomList', Object.entries(salas).map(([id, { name }]) => ({ id, name })));
+  });
 
-    socket.on('disconnect', () => {
-        console.log('usuario desconectado de una sala');
-    });
+  socket.on('joinRoom', (roomId) => {
+      if (salas[roomId]) {
+          // Salir de cualquier sala anterior para evitar estar en múltiples salas
+          const previousRooms = Array.from(socket.rooms).filter(room => room !== socket.id);
+          previousRooms.forEach(previousRoom => {
+              socket.leave(previousRoom);
+              console.log(`Usuario salió de la sala: ${previousRoom}`);
+          });
+
+          // Unirse a la nueva sala
+          socket.join(roomId);
+          salas[roomId].users.push(socket.id);
+          socket.emit('roomName', salas[roomId].name);
+          socket.to(roomId).emit('chat message', `Un nuevo usuario se ha unido a la sala ${salas[roomId].name}`);
+      }
+  });
+
+  socket.on('chat message', (data) => {
+      const { roomId, msg } = data;
+      console.log('Recibido en el servidor:', { roomId, msg });
+      if (salas[roomId]) {
+          io.to(roomId).emit('chat message', msg); // Solo emite el mensaje
+      }
+  });
+
+  socket.on('disconnect', () => {
+      console.log('usuario desconectado', socket.id);
+      Object.keys(salas).forEach(roomId => {
+          salas[roomId].users = salas[roomId].users.filter(userId => userId !== socket.id);
+          if (salas[roomId].users.length === 0) {
+              delete salas[roomId];
+          }
+      });
+      io.emit('updateRoomList', Object.entries(salas).map(([id, { name }]) => ({ id, name })));
+  });
 });
+
 
 
 // SUBIR Y DESCARGAR ARCHIVOS

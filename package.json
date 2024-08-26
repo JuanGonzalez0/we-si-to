@@ -4,6 +4,7 @@
   "description": "chats con socket.io",
   "main": "server.js",
   "scripts": {
+    "devStart": "nodemon server.js",
     "test": "echo \"Error: no test specified\" && exit 1",
     "start": "node server.js"
   },
@@ -16,6 +17,10 @@
     "http": "^0.0.1-security",
     "multer": "^1.4.5-lts.1",
     "path": "^0.12.7",
-    "socket.io": "^4.7.5"
+    "socket.io": "^4.7.5",
+    "uuid": "^10.0.0"
+  },
+  "devDependencies": {
+    "nodemon": "^3.1.4"
   }
 }
