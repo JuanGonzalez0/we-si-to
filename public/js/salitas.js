@@ -17,8 +17,9 @@ document.addEventListener('DOMContentLoaded', () => {
     document.getElementById('sendMessage').addEventListener('click', () => {
         const roomId = document.getElementById('roomId').value;
         const message = document.getElementById('message').value;
+        let nombre = document.getElementById('nombre').value;
         console.log('Enviando mensaje:', { roomId, msg: message });
-        socket.emit('chat message', { roomId, msg: message });
+        socket.emit('chat message', { roomId, msg: message, nombre });
     });
 
     // Recepción de mensajes

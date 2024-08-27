@@ -80,13 +80,12 @@ io.on('connection', (socket) => {
   });
 
   socket.on('chat message', (data) => {
-      const { roomId, msg } = data;
+      const { roomId, msg, nombre } = data;
       console.log('Recibido en el servidor:', { roomId, msg });
       if (salas[roomId]) {
-          io.to(roomId).emit('chat message', msg); // Solo emite el mensaje
+          io.to(roomId).emit('chat message', nombre+": " + msg); // emite el nombre junto al mensaje
       }
   });
-
   socket.on('disconnect', () => {
       console.log('usuario desconectado', socket.id);
       Object.keys(salas).forEach(roomId => {
