@@ -37,12 +37,39 @@ app.get("/salas", (req, res) => {
 // Manejo de usuarios conectados y salas
 const usuariosConectados = {};
 const salas = {};
+const jugadores = {};
+
 
 // Manejo de conexiones
 io.on('connection', (socket) => {
     console.log('usuario conectado', socket.id);
     usuariosConectados[socket.id] = { id: socket.id, username: `User${socket.id.slice(0, 4)}` };
     io.emit('updateUserCount', Object.keys(usuariosConectados).length);
+
+    //Juego
+
+    // Añadir nuevo jugador a la lista
+    jugadores[socket.id] = { id: socket.id, username: `User${socket.id.slice(0, 4)}`, x: 0, y: 5, z: 0 };
+
+    // Enviar la lista completa de jugadores a todos los jugadores
+    io.emit('updatePlayersList', jugadores);
+
+    // Notificar a los demás jugadores sobre el nuevo jugador
+    socket.broadcast.emit('playerConnected', jugadores[socket.id]);
+
+    // Actualizar el nombre del jugador
+    socket.on('playerName', (name) => {
+        jugadores[socket.id].username = name;
+        io.emit('updatePlayersList', jugadores); // Emitir lista actualizada a todos
+    });
+
+    // Actualizar la posición del jugador
+    socket.on('playerMovement', (movementData) => {
+        jugadores[socket.id].x = movementData.x;
+        jugadores[socket.id].y = movementData.y;
+        jugadores[socket.id].z = movementData.z;
+        io.emit('updatePlayersList', jugadores); // Emitir lista actualizada a todos
+    });
 
     // Chat general
     socket.on('chat message general', (msg) => {
@@ -87,6 +114,8 @@ io.on('connection', (socket) => {
         console.log('usuario desconectado', socket.id);
         delete usuariosConectados[socket.id];
         io.emit('updateUserCount', Object.keys(usuariosConectados).length);
+        delete jugadores[socket.id];
+        io.emit('updatePlayersList', jugadores);
 
         Object.keys(salas).forEach(roomId => {
             salas[roomId].users = salas[roomId].users.filter(userId => userId !== socket.id);

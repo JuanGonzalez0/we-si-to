@@ -3,22 +3,64 @@
 <head>
     <title>My first three.js app</title>
     <style>
-        body { margin: 0; }
-    </style>
-    <style>
-        .player-label {
-          color: black;
-          font-size: 20px;
-          font-family: Arial;
-          background: white;
-          padding: 2px;
-          border-radius: 3px;
-          pointer-events: none;
-        }
-      </style>
+      body, html {
+          margin: auto;
+          padding: 0;
+          overflow: hidden;
+          font-family: Arial, sans-serif;
+      }
+
+      #nameFormContainer {
+          position: absolute;
+          width: 100%;
+          height: 100%;
+          background-color: rgba(0, 0, 0, 0.8);
+          display: flex;
+          justify-content: center;
+          align-items: center;
+      }
+
+      #nameForm {
+          background-color: white;
+          padding: 20px;
+          border-radius: 10px;
+          text-align: center;
+      }
+
+      #nameInput {
+          padding: 10px;
+          font-size: 16px;
+          width: 200px;
+          margin-bottom: 10px;
+      }
+
+      #startGameButton {
+          padding: 10px 20px;
+          font-size: 16px;
+          cursor: pointer;
+      }
+      #playerNameLabel {
+        position: absolute;
+        color: white;
+        font-size: 20px;
+        font-weight: bold;
+        text-shadow: 1px 1px 2px black;
+        transform: translate(-50%, -50%); /* Para centrar el texto en su posición */
+    }
+  </style>
 </head>
 <body>
-    <script type="module" src="/js/juegitos.js"></script>  
+  <div id="nameFormContainer">
+    <div id="nameForm">
+        <h2>Enter Your Name</h2>
+        <input type="text" id="nameInput" placeholder="Your Name">
+        <br>
+        <button id="startGameButton">Start Game</button>
+    </div>
+</div>
+<div id="playerNameLabel"></div>
+    <script type="module" src="/js/juegitos.js"></script>
+    <script src="/socket.io/socket.io.js"></script>  
 </body>
 
 
