@@ -74,6 +74,22 @@ function startGame() {
     camera.position.z = 10;
     camera.position.y = 7;
 
+    // Define la posición de spawn inicial
+const spawnPosition = new THREE.Vector3(0, 5, 0); // Cambia esta posición según tu necesidad
+
+    function resetToSpawn() {
+        // Mueve el cubo a la posición de spawn
+        cubeBody.position.set(spawnPosition.x, spawnPosition.y, spawnPosition.z);
+        cube.position.copy(cubeBody.position); // Sincroniza la posición del cubo en Three.js con el cuerpo físico en Cannon.js
+    }
+
+    function jump() {
+        // Verifica si el cubo está en el suelo antes de permitir el salto
+        if (cubeBody.position.y <= 1) {
+            // Aplica una fuerza hacia arriba para el salto
+            cubeBody.applyImpulse(new Vec3(0, 10, 0), cubeBody.position);
+        }
+    }
     // Controlar el movimiento del cubo con WASD
     const moveSpeed = 5; // Velocidad de movimiento
 
@@ -90,6 +106,12 @@ function startGame() {
                 break;
             case 'd':
                 cubeBody.velocity.x = moveSpeed;
+                break;
+            case ' ':
+                jump(); // Llama a la función de salto cuando se presiona Espacio
+                break;
+            case 'f': // Regresa al spawn cuando se presiona F
+                resetToSpawn();
                 break;
         }
     });
