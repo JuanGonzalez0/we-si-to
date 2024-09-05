@@ -47,6 +47,20 @@
         text-shadow: 1px 1px 2px black;
         transform: translate(-50%, -50%); /* Para centrar el texto en su posición */
     }
+    #controles{
+        position: absolute;
+            top: 60px;
+            left: 70px;
+            background-color: rgba(0, 0, 0, 0.7); /* Fondo semitransparente */
+            color: white;
+            padding: 10px;
+            border-radius: 5px;
+            font-size: 13px;
+            z-index: 100;
+    }
+    #temporizador{
+        color: red;
+    }
   </style>
 </head>
 <body>
@@ -59,6 +73,16 @@
     </div>
 </div>
 <div id="playerNameLabel"></div>
+<div id="controles">
+ <p id="temporizador">TIEMPO: </p>
+ <p>controles</p>
+ <p>W: adelante</p>
+ <p>A: izquierda</p>
+ <p>S: Atras</p>
+ <p>D: derecha</p>
+ <p>Espacio: saltar</p>
+ <p>R: detener giro del cubo</p> 
+</div>
     <script type="module" src="/js/juegitos.js"></script>
     <script src="/socket.io/socket.io.js"></script>  
 </body>

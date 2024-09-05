@@ -49,7 +49,7 @@ io.on('connection', (socket) => {
     //Juego
 
     // Añadir nuevo jugador a la lista
-    jugadores[socket.id] = { id: socket.id, username: `User${socket.id.slice(0, 4)}`, x: 0, y: 5, z: 0 };
+    jugadores[socket.id] = { id: socket.id, username: `User${socket.id.slice(0, 4)}`, x: 0, y: 100, z: 0 };
 
     // Enviar la lista completa de jugadores a todos los jugadores
     io.emit('updatePlayersList', jugadores);

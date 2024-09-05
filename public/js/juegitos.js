@@ -27,6 +27,8 @@ startGameButton.addEventListener('click', () => {
     }
 });
 
+let wallShape, wallBody, pikeShape, pikeBody; 
+
 function startGame() {
     // Aquí empieza tu código Three.js y Cannon.js
     const scene = new THREE.Scene();
@@ -45,6 +47,7 @@ function startGame() {
     const cube = new THREE.Mesh(cubeGeometry, cubeMaterial);
     scene.add(cube);
 
+
     // Configuración de Cannon.js
     const world = new World();
     world.gravity.set(0, -9.82, 0); // gravedad
@@ -57,8 +60,10 @@ function startGame() {
     cubeBody.addShape(new Box(new Vec3(0.5, 0.5, 0.5))); // Forma del cubo
     world.addBody(cubeBody);
 
+
+
     // Crear el suelo
-    const groundGeometry = new THREE.PlaneGeometry(50, 50);
+    const groundGeometry = new THREE.PlaneGeometry(50, 300);
     const groundMaterial = new THREE.MeshBasicMaterial({ color: 0x020003 });
     const groundMesh = new THREE.Mesh(groundGeometry, groundMaterial);
     groundMesh.rotation.x = -Math.PI / 2;
@@ -70,25 +75,101 @@ function startGame() {
     groundBody.quaternion.setFromEuler(-Math.PI / 2, 0, 0);
     world.addBody(groundBody);
 
+    // Crear geometría y material para la pared (meta) en Three.js
+    const wallGeometry = new THREE.BoxGeometry(10, 5, 0.5); // Ajusta el tamaño según necesites
+    const wallMaterial = new THREE.MeshBasicMaterial({ color: 0x00ff00 }); // Verde
+    const wall = new THREE.Mesh(wallGeometry, wallMaterial);
+    wall.position.set(0, 2.5, -150); // Ajusta la posición según necesites
+    scene.add(wall);
+
+    // Crear la pared (meta) en Cannon.js
+    wallShape = new Box(new Vec3(5, 2.5, 0.25)); // Ajusta el tamaño según necesites
+    wallBody = new Body({
+        position: new Vec3(0, 2.5, -155) // Ajusta la posición según necesites
+    });
+    wallBody.addShape(wallShape);
+    world.addBody(wallBody);
+
+    const numberOfPikes = 20;  // Ajusta este valor para cambiar la cantidad de pinchos
+
+    // Dimensiones de los pinchos
+    const pikeWidth = 1;
+    const pikeHeight = 1;
+    const pikeDepth = 1;
+    
+    // Geometría y material del pincho (Three.js)
+    const pikeGeometry = new THREE.BoxGeometry(pikeWidth, pikeHeight, pikeDepth);
+    const pikeMaterial = new THREE.MeshBasicMaterial({ color: 0xff6600 }); // Naranja
+    
+    const pikes = []; // Array para almacenar los pinchos
+    const pikeBodies = []; // Array para los cuerpos de Cannon.js
+    
+    // Función para generar un número aleatorio dentro de un rango
+    function getRandomInRange(min, max) {
+        return Math.random() * (max - min) + min;
+    }
+    
+    // Generar pinchos aleatorios
+    for (let i = 0; i < numberOfPikes; i++) {
+        const randomX = getRandomInRange(-25, 25); // Genera una posición aleatoria en el eje X
+        const randomZ = getRandomInRange(-100, -50); // Genera una posición aleatoria en el eje Z
+    
+        // Crear el pincho en Three.js
+        const pike = new THREE.Mesh(pikeGeometry, pikeMaterial);
+        pike.position.set(randomX, 0.5, randomZ); // Colocar el pincho sobre el suelo
+        scene.add(pike);
+        pikes.push(pike); // Guardar el pincho en el array para referencia
+    
+        // Crear el pincho en Cannon.js
+        const pikeShape = new Box(new Vec3(pikeWidth / 2, pikeHeight / 2, pikeDepth / 2)); // Tamaño del pincho
+        const pikeBody = new Body({
+            mass: 0, // Los pinchos no deben moverse
+            position: new Vec3(randomX, 0.5, randomZ) // Posición del cuerpo en el mundo físico
+        });
+        pikeBody.addShape(pikeShape);
+        world.addBody(pikeBody);
+        pikeBodies.push(pikeBody); // Guardar el cuerpo físico en el array
+    }
+    
     // Ajustar la cámara
     camera.position.z = 10;
     camera.position.y = 7;
 
-    // Define la posición de spawn inicial
-const spawnPosition = new THREE.Vector3(0, 5, 0); // Cambia esta posición según tu necesidad
+    const spawnPosition = new THREE.Vector3(0, 5, 0); // Cambia esta posición según tu necesidad
 
     function resetToSpawn() {
         // Mueve el cubo a la posición de spawn
         cubeBody.position.set(spawnPosition.x, spawnPosition.y, spawnPosition.z);
         cube.position.copy(cubeBody.position); // Sincroniza la posición del cubo en Three.js con el cuerpo físico en Cannon.js
+    
+        cubeBody.velocity.set(0, 0, 0); // Detiene el movimiento en todas las direcciones
+        cubeBody.angularVelocity.set(0, 0, 0);
+        resetTimer();
+    }
+    function muerte(){
+        // Mueve el cubo a la posición de spawn
+        cubeBody.position.set(spawnPosition.x, spawnPosition.y, spawnPosition.z);
+        cube.position.copy(cubeBody.position); // Sincroniza la posición del cubo en Three.js con el cuerpo físico en Cannon.js
+    
+        cubeBody.velocity.set(0, 0, 0); // Detiene el movimiento en todas las direcciones
+        cubeBody.angularVelocity.set(0, 0, 0);
+    }
+
+    function resetTimer() {
+        startTime = Date.now();
+        hasWon = false; // Opcional: reinicia el estado de victoria si es necesario
     }
 
     function jump() {
         // Verifica si el cubo está en el suelo antes de permitir el salto
         if (cubeBody.position.y <= 1) {
             // Aplica una fuerza hacia arriba para el salto
-            cubeBody.applyImpulse(new Vec3(0, 10, 0), cubeBody.position);
+            cubeBody.applyImpulse(new Vec3(0, 6, 0), cubeBody.position);
         }
+    }
+
+    function freno(){
+        cubeBody.angularVelocity.set(0, 0, 0);
     }
     // Controlar el movimiento del cubo con WASD
     const moveSpeed = 5; // Velocidad de movimiento
@@ -112,6 +193,9 @@ const spawnPosition = new THREE.Vector3(0, 5, 0); // Cambia esta posición segú
                 break;
             case 'f': // Regresa al spawn cuando se presiona F
                 resetToSpawn();
+                break;
+            case 'r':
+                freno();
                 break;
         }
     });
@@ -221,7 +305,9 @@ const spawnPosition = new THREE.Vector3(0, 5, 0); // Cambia esta posición segú
             }
         }
     });
-    
+
+    let startTime = Date.now();
+    let hasWon = false;
     // Función de animación
     function animate() {
         // Actualizar el mundo de físicas
@@ -244,23 +330,47 @@ const spawnPosition = new THREE.Vector3(0, 5, 0); // Cambia esta posición segú
             console.error('cubeBody.quaternion is undefined');
         }
 
-    // Actualizar la posición del texto del nombre del jugador
-    const playerLabel = document.getElementById('playerNameLabel');
-    const vector = new THREE.Vector3(cube.position.x, cube.position.y + 1.5, cube.position.z); // Posiciona el texto ligeramente encima del cubo
-    vector.project(camera);
+        // Actualizar la posición del texto del nombre del jugador
+        const playerLabel = document.getElementById('playerNameLabel');
+        const vector = new THREE.Vector3(cube.position.x, cube.position.y + 1.5, cube.position.z); // Posiciona el texto ligeramente encima del cubo
+        vector.project(camera);
 
-    const x = (vector.x * 0.5 + 0.5) * window.innerWidth;
-    const y = -(vector.y * 0.5 - 0.5) * window.innerHeight;
+        const x = (vector.x * 0.5 + 0.5) * window.innerWidth;
+        const y = -(vector.y * 0.5 - 0.5) * window.innerHeight;
 
-    playerLabel.style.left = `${x}px`;
-    playerLabel.style.top = `${y}px`;
-    playerLabel.textContent = playerName;
+        playerLabel.style.left = `${x}px`;
+        playerLabel.style.top = `${y}px`;
+        playerLabel.textContent = playerName;
 
-    socket.emit('playerMovement', {
-      x: cube.position.x,
-      y: cube.position.y,
-      z: cube.position.z
-  });
+        // Verificar colisión con la pared
+        if (wallBody) { // Asegúrate de que wallBody esté definido antes de usarlo
+            const cubePosition = cubeBody.position;
+            const wallPosition = wallBody.position;
+
+            const distance = cubePosition.distanceTo(wallPosition);
+            if (distance < 6) { // Ajusta el valor según el tamaño de la pared y la tolerancia
+                if (!hasWon) {
+                    hasWon = true;
+                    const elapsedTime = ((Date.now() - startTime) / 1000).toFixed(2);
+                    showWinMessage(elapsedTime);
+                }
+            }
+        }
+
+        pikes.forEach((pike, index) => {
+            const distance = cube.position.distanceTo(pike.position);
+            if (distance < 2) { // Si la distancia es menor que el tamaño del pincho, significa colisión
+                console.log("Has tocado un pincho!");
+                muerte(); // Devuelve al jugador al punto de inicio
+            }
+        });
+
+
+        socket.emit('playerMovement', {
+        x: cube.position.x,
+        y: cube.position.y,
+        z: cube.position.z
+    });
 
         // Hacer que la cámara siga al cubo
         camera.position.x = cube.position.x;
@@ -272,4 +382,9 @@ const spawnPosition = new THREE.Vector3(0, 5, 0); // Cambia esta posición segú
 
     // Aquí puedes usar playerName para mostrar el nombre del jugador en la pantalla, registrar datos, etc.
     console.log("Player Name:", playerName);
+    // Función para mostrar el mensaje de victoria
+    function showWinMessage(elapsedTime) {
+        alert(`¡Ganaste! Tu tiempo es: ${elapsedTime} segundos`);
+        resetToSpawn();
+    }
 }
