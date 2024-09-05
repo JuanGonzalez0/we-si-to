@@ -27,7 +27,7 @@ startGameButton.addEventListener('click', () => {
     }
 });
 
-let wallShape, wallBody, pikeShape, pikeBody; 
+let wallShape, wallBody, pikeShape, pikeBody, paredonShape, paredonBody, paredon2Shape, paredon2Body; 
 
 function startGame() {
     // Aquí empieza tu código Three.js y Cannon.js
@@ -90,7 +90,35 @@ function startGame() {
     wallBody.addShape(wallShape);
     world.addBody(wallBody);
 
-    const numberOfPikes = 20;  // Ajusta este valor para cambiar la cantidad de pinchos
+    const paredonGeometry = new THREE.BoxGeometry(35, 5, 0.5); // Ajusta el tamaño según necesites
+    const paredonMaterial = new THREE.MeshBasicMaterial({ color: 0xff6600 }); 
+    const paredon = new THREE.Mesh(paredonGeometry, paredonMaterial);
+    paredon.position.set(8, 2.5, -20); // Ajusta la posición según necesites
+    scene.add(paredon);
+
+
+    paredonShape = new Box(new Vec3(30, 2.5, 0.25)); // Ajusta el tamaño según necesites
+    paredonBody = new Body({
+        position: new Vec3(20, 2.5, -20) // Ajusta la posición según necesites
+    });
+    paredonBody.addShape(paredonShape);
+    world.addBody(paredonBody);
+
+    const paredon2Geometry = new THREE.BoxGeometry(35, 5, 0.5); // Ajusta el tamaño según necesites
+    const paredon2Material = new THREE.MeshBasicMaterial({ color: 0xff6600 }); 
+    const paredon2 = new THREE.Mesh(paredon2Geometry, paredon2Material);
+    paredon2.position.set(-8, 2.5, -35); // Ajusta la posición según necesites
+    scene.add(paredon2);
+
+
+    paredon2Shape = new Box(new Vec3(30, 2.5, 0.25)); // Ajusta el tamaño según necesites
+    paredon2Body = new Body({
+        position: new Vec3(-20, 2.5, -35) // Ajusta la posición según necesites
+    });
+    paredon2Body.addShape(paredon2Shape);
+    world.addBody(paredon2Body);
+
+    const numberOfPikes = 120;  // Ajusta este valor para cambiar la cantidad de pinchos
 
     // Dimensiones de los pinchos
     const pikeWidth = 1;
@@ -99,7 +127,7 @@ function startGame() {
     
     // Geometría y material del pincho (Three.js)
     const pikeGeometry = new THREE.BoxGeometry(pikeWidth, pikeHeight, pikeDepth);
-    const pikeMaterial = new THREE.MeshBasicMaterial({ color: 0xff6600 }); // Naranja
+    const pikeMaterial = new THREE.MeshBasicMaterial({ color: 0xffffff }); // Naranja
     
     const pikes = []; // Array para almacenar los pinchos
     const pikeBodies = []; // Array para los cuerpos de Cannon.js
@@ -116,7 +144,7 @@ function startGame() {
     
         // Crear el pincho en Three.js
         const pike = new THREE.Mesh(pikeGeometry, pikeMaterial);
-        pike.position.set(randomX, 0.5, randomZ); // Colocar el pincho sobre el suelo
+        pike.position.set(randomX, 0, randomZ); // Colocar el pincho sobre el suelo
         scene.add(pike);
         pikes.push(pike); // Guardar el pincho en el array para referencia
     
@@ -153,6 +181,14 @@ function startGame() {
     
         cubeBody.velocity.set(0, 0, 0); // Detiene el movimiento en todas las direcciones
         cubeBody.angularVelocity.set(0, 0, 0);
+    }
+
+let elapsedTime = 0;
+
+    function updateTimer() {
+        let currentTime = Date.now();
+        elapsedTime = Math.floor((currentTime - startTime) / 1000); // Tiempo en segundos
+        document.getElementById('timer').textContent = `Tiempo: ${elapsedTime} s`;
     }
 
     function resetTimer() {
@@ -249,7 +285,7 @@ function startGame() {
     function addOtherPlayer(player) {
         // Crear el cubo del jugador
         const otherPlayerGeometry = new THREE.BoxGeometry(1, 1, 1);
-        const otherPlayerMaterial = new THREE.MeshBasicMaterial({ color: 0xff0000 }); // Color rojo
+        const otherPlayerMaterial = new THREE.MeshBasicMaterial({ color: 0xF8F520 }); // Color rojo
         const otherPlayerCube = new THREE.Mesh(otherPlayerGeometry, otherPlayerMaterial);
         scene.add(otherPlayerCube);
         otherPlayerCube.position.set(player.x, player.y, player.z);
@@ -359,11 +395,12 @@ function startGame() {
 
         pikes.forEach((pike, index) => {
             const distance = cube.position.distanceTo(pike.position);
-            if (distance < 2) { // Si la distancia es menor que el tamaño del pincho, significa colisión
+            if (distance < 1.5) { // Si la distancia es menor que el tamaño del pincho, significa colisión
                 console.log("Has tocado un pincho!");
                 muerte(); // Devuelve al jugador al punto de inicio
             }
         });
+        updateTimer()
 
 
         socket.emit('playerMovement', {

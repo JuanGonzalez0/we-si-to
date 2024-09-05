@@ -58,9 +58,6 @@
             font-size: 13px;
             z-index: 100;
     }
-    #temporizador{
-        color: red;
-    }
   </style>
 </head>
 <body>
@@ -74,13 +71,15 @@
 </div>
 <div id="playerNameLabel"></div>
 <div id="controles">
- <p id="temporizador">TIEMPO: </p>
- <p>controles</p>
+<div id="timer" style="color: yellow;">Tiempo: 0 s</div>
+<p>
+ <p>CONTROLES</p>
  <p>W: adelante</p>
  <p>A: izquierda</p>
  <p>S: Atras</p>
  <p>D: derecha</p>
  <p>Espacio: saltar</p>
+ <p>F: Reiniciar</p>
  <p>R: detener giro del cubo</p> 
 </div>
     <script type="module" src="/js/juegitos.js"></script>
